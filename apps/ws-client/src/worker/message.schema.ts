@@ -44,4 +44,13 @@ export const MessageSchema = SchemaFactory.createForClass(Message)
   .index({
     hostname: 1,
     workerId: 1,
+  })
+  .index({
+    'message.data.date': -1,
+    'message.data.symbol': 1,
+  })
+  .index({
+    'message.event': 1,
+    'message.data.date': -1,
+    'message.data.symbol': 1,
   });
