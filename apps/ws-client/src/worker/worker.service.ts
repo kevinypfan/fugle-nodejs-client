@@ -1,6 +1,10 @@
-import * as fs from 'fs';
+// import * as fs from 'fs';
+import * as os from 'os';
 import { Injectable } from '@nestjs/common';
 import { WebSocketClient } from '@fugle/marketdata';
+import { Message } from './message.schema';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class WorkerService {
@@ -8,6 +12,10 @@ export class WorkerService {
   private isConnected = false;
   public workerId: number;
   private subscriptionTopics: string[][] = JSON.parse(process.env.CLIENT_SUBS);
+
+  constructor(
+    @InjectModel(Message.name) private messageModel: Model<Message>,
+  ) {}
 
   async onApplicationBootstrap() {
     this.initSDK();
@@ -59,11 +67,21 @@ export class WorkerService {
   }
 
   async connect() {
-    this.wsStockClient.on('message', (message) => {
-      fs.appendFileSync(
-        `${this.workerId}-${this.formatDate(new Date())}-log.jsonl`,
-        `${message}\n`,
-      );
+    this.wsStockClient.on('message', async (message) => {
+      const data = JSON.parse(message);
+      const hostname = os.hostname();
+
+      const entity = new this.messageModel({
+        hostname,
+        message: data,
+        workerId: this.workerId,
+      });
+
+      await entity.save();
+      // fs.appendFileSync(
+      //   `${this.workerId}-${this.formatDate(new Date())}-log.jsonl`,
+      //   `${message}\n`,
+      // );
     });
 
     this.wsStockClient.on('open', () => {
