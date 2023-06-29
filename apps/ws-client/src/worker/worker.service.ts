@@ -1,27 +1,104 @@
+import * as fs from 'fs';
 import { Injectable } from '@nestjs/common';
 import { WebSocketClient } from '@fugle/marketdata';
 
 @Injectable()
 export class WorkerService {
-  private readonly wsClient: Map<string, WebSocket> = new Map();
+  private wsStockClient = null;
+  private isConnected = false;
+  public workerId: number;
+  private subscriptionTopics: string[][] = JSON.parse(process.env.CLIENT_SUBS);
 
   async onApplicationBootstrap() {
-    this.createSDKConnection();
+    this.initSDK();
+    setTimeout(() => {
+      this.connect();
+    }, 0);
   }
 
-  async createSDKConnection() {
+  async initSDK() {
     const client = new WebSocketClient({ apiKey: process.env.FUGLE_API_KEY });
-    const stock = client.stock; // Stock REST API client
+    this.wsStockClient = client.stock; // Stock REST API client
 
-    // open the WebSocket connection and authenticate
-    stock.connect().then(() => {
-      // subscribe the channel to receive streaming data
-      stock.subscribe({ channel: 'trades', symbol: '2330' });
+    // this.wsStockClient.connect().then(() => {
+    //   this.wsStockClient.subscribe({ channel: 'trades', symbol: '2330' });
+    // });
+  }
+
+  getStockSubscribes() {
+    if (this.workerId) {
+      const topics = this.subscriptionTopics[this.workerId - 1];
+      const stockTopics = topics.filter((topic) => topic.startsWith('stock'));
+
+      const channelMap: Map<string, Set<string>> = new Map();
+
+      stockTopics.forEach((topic) => {
+        const [product, channel, symbol] = topic.split(':');
+        const symbolSet = channelMap.get(channel);
+        if (symbolSet) {
+          symbolSet.add(symbol);
+        } else {
+          channelMap.set(channel, new Set([symbol]));
+        }
+      });
+
+      const results = [];
+
+      channelMap.forEach((value, key) => {
+        const payload = {
+          channel: key,
+          symbols: Array.from(value),
+        };
+        results.push(payload);
+      });
+
+      return results;
+    }
+
+    return null;
+  }
+
+  async connect() {
+    this.wsStockClient.on('message', (message) => {
+      fs.appendFileSync(
+        `${this.workerId}-${this.formatDate(new Date())}-log.jsonl`,
+        `${message}\n`,
+      );
     });
 
-    stock.on('message', (message) => {
-      const data = JSON.parse(message);
-      console.log(data);
+    this.wsStockClient.on('open', () => {
+      this.isConnected = true;
+      console.log(`Established connection to fugle`);
     });
+
+    this.wsStockClient.on('close', (e) => {
+      this.isConnected = false;
+      console.log(
+        'Socket is closed. Reconnect will be attempted in 1 second.',
+        e.reason,
+      );
+    });
+
+    await this.wsStockClient.connect();
+    this.subscribeChannels();
+  }
+
+  subscribeChannels() {
+    const subscribes = this.getStockSubscribes();
+    subscribes.forEach((payload) => {
+      this.wsStockClient.subscribe(payload);
+    });
+  }
+
+  async reconnect() {
+    await this.wsStockClient.connect();
+  }
+
+  formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
   }
 }

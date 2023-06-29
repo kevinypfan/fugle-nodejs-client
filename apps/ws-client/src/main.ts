@@ -5,6 +5,7 @@ import { Logger } from '@nestjs/common';
 import { AppMode } from './enums/app-mode.enum';
 import { MasterModule } from './master/master.module';
 import { WorkerModule } from './worker/worker.module';
+import { WorkerService } from './worker/worker.service';
 
 const PORT =
   parseInt(process.env.CLIENT_PORT || process.env.APP_PORT, 10) || 3000;
@@ -13,17 +14,16 @@ const subs = JSON.parse(process.env.CLIENT_SUBS) || [];
 
 const count = subs.length;
 
-console.log({ PORT, subs, count });
-
 async function master() {
-  const app = await NestFactory.create(MasterModule);
-  await app.listen(3000);
+  const appContext = await NestFactory.create(MasterModule);
+  await appContext.listen(3000);
   Logger.log(`Application master is running on port ${PORT}`, AppMode.Master);
 }
 
 async function worker(id: number) {
-  await NestFactory.createApplicationContext(WorkerModule);
-
+  const appContext = await NestFactory.createApplicationContext(WorkerModule);
+  const workerService = appContext.get(WorkerService);
+  workerService.workerId = id;
   Logger.log(`Application worker#${id} is running`, AppMode.Worker);
 }
 
