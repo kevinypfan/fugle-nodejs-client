@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "apps/fugle-nodejs-client/src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "webpack": true,
+    "tsConfigPath": "apps/fugle-nodejs-client/tsconfig.app.json"
+  },
+  "monorepo": true,
+  "root": "apps/fugle-nodejs-client",
+  "projects": {
+    "fugle-nodejs-client": {
+      "type": "application",
+      "root": "apps/fugle-nodejs-client",
+      "entryFile": "main",
+      "sourceRoot": "apps/fugle-nodejs-client/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/fugle-nodejs-client/tsconfig.app.json"
+      }
+    },
+    "schedule": {
+      "type": "application",
+      "root": "apps/schedule",
+      "entryFile": "main",
+      "sourceRoot": "apps/schedule/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/schedule/tsconfig.app.json"
+      }
+    },
+    "ws-client": {
+      "type": "application",
+      "root": "apps/ws-client",
+      "entryFile": "main",
+      "sourceRoot": "apps/ws-client/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/ws-client/tsconfig.app.json"
+      }
+    }
+  }
+}
