@@ -25,4 +25,23 @@ export class Message {
   >;
 }
 
-export const MessageSchema = SchemaFactory.createForClass(Message);
+export const MessageSchema = SchemaFactory.createForClass(Message)
+  .index({
+    hostname: 1,
+    workerId: 1,
+    'message.event': 1,
+    'message.channel': 1,
+  })
+  .index({
+    hostname: 1,
+    workerId: 1,
+    'message.event': 1,
+  })
+  .index({
+    hostname: 1,
+    'message.event': 1,
+  })
+  .index({
+    hostname: 1,
+    workerId: 1,
+  });
