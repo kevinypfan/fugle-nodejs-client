@@ -1,6 +1,6 @@
-// import * as fs from 'fs';
+import * as fs from 'fs';
 import * as os from 'os';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { WebSocketClient } from '@fugle/marketdata';
 import { Message } from './message.schema';
 import { InjectModel } from '@nestjs/mongoose';
@@ -12,6 +12,11 @@ export class WorkerService {
   private isConnected = false;
   public workerId: number;
   private subscriptionTopics: string[][] = JSON.parse(process.env.CLIENT_SUBS);
+  private readonly logger = new Logger(WorkerService.name);
+  private readonly enableLogger = process.env.ENABLE_LOGGER === 'true';
+  private readonly enableDbStorage = process.env.ENABLE_DB_STORAGE === 'true';
+  private readonly enableFileStorage =
+    process.env.ENABLE_FILE_STORAGE === 'true';
 
   constructor(
     @InjectModel(Message.name) private messageModel: Model<Message>,
@@ -68,20 +73,38 @@ export class WorkerService {
 
   async connect() {
     this.wsStockClient.on('message', async (message) => {
+      // console.log(message);
       const data = JSON.parse(message);
       const hostname = os.hostname();
 
-      const entity = new this.messageModel({
-        hostname,
-        message: data,
-        workerId: this.workerId,
-      });
+      if (this.enableDbStorage) {
+        const entity = new this.messageModel({
+          hostname,
+          message: data,
+          workerId: this.workerId,
+        });
 
-      await entity.save();
-      // fs.appendFileSync(
-      //   `${this.workerId}-${this.formatDate(new Date())}-log.jsonl`,
-      //   `${message}\n`,
-      // );
+        await entity.save();
+      }
+
+      if (this.enableLogger) {
+        this.logger.log(`${hostname}-${this.workerId}: ${message}`);
+      }
+
+      if (this.enableFileStorage) {
+        fs.appendFileSync(
+          `${hostname}-${this.workerId}-${this.formatDate(
+            new Date(),
+          )}-log.jsonl`,
+          `${message}\n`,
+        );
+      }
+
+      // console.log({
+      //   enableDbStorage: this.enableDbStorage,
+      //   enableLogger: this.enableLogger,
+      //   enableFileStorage: this.enableFileStorage,
+      // });
     });
 
     this.wsStockClient.on('open', () => {
@@ -89,12 +112,23 @@ export class WorkerService {
       console.log(`Established connection to fugle`);
     });
 
-    this.wsStockClient.on('close', (e) => {
+    this.wsStockClient.on('disconnect', async (e) => {
       this.isConnected = false;
-      console.log(
-        'Socket is closed. Reconnect will be attempted in 1 second.',
-        e.reason,
-      );
+      if (e.code === 1001) {
+        this.logger.error(`${e.code}: ${e.reason}`);
+      } else {
+        this.logger.error(
+          `Socket is closed. Reconnect will be attempted in 2 second. (${e.reason})`,
+        );
+        setTimeout(() => {
+          this.wsStockClient.connect();
+        }, 2000);
+      }
+    });
+
+    this.wsStockClient.on('error', (e) => {
+      this.isConnected = false;
+      this.logger.error(`WebSocket error: ${e}`);
     });
 
     await this.wsStockClient.connect();
@@ -106,10 +140,6 @@ export class WorkerService {
     subscribes.forEach((payload) => {
       this.wsStockClient.subscribe(payload);
     });
-  }
-
-  async reconnect() {
-    await this.wsStockClient.connect();
   }
 
   formatDate(date) {
