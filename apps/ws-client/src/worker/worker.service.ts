@@ -80,8 +80,9 @@ export class WorkerService {
       if (this.enableDbStorage) {
         const entity = new this.messageModel({
           hostname,
-          message: data,
+          message: { symbol: data.symbol, date: data.date, ...data },
           workerId: this.workerId,
+          version: '1.0',
         });
 
         await entity.save();
