@@ -40,7 +40,7 @@ export class WorkerService {
 
   getStockSubscribes() {
     if (this.workerId) {
-      const topics = this.subscriptionTopics[this.workerId - 1];
+      const topics = this.subscriptionTopics[0];
       const stockTopics = topics.filter((topic) => topic.startsWith('stock'));
 
       const channelMap: Map<string, Set<string>> = new Map();
