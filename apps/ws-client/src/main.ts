@@ -16,7 +16,6 @@ const count = subs.length;
 
 async function master() {
   const appContext = await NestFactory.create(MasterModule);
-  await appContext.listen(3000);
   Logger.log(`Application master is running on port ${PORT}`, AppMode.Master);
 }
 
