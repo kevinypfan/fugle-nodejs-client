@@ -21,8 +21,7 @@ export class WsClientV03Service {
   async onApplicationBootstrap() {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const pws = require('pws')(
-      'wss://api.fugle.tw/realtime/v0.3/intraday/quote?symbolId=2884&apiToken=' +
-        process.env.FUGLE_API_TOKEN,
+      `wss://api.fugle.tw/realtime/v0.3/intraday/quote?symbolId=${process.env.FUGLE_API_SYMBOL}&apiToken=${process.env.FUGLE_API_TOKEN}`,
       WebSocket,
     );
 
