@@ -8,7 +8,7 @@ import { WorkerModule } from './worker/worker.module';
 import { WorkerService } from './worker/worker.service';
 
 const PORT =
-  parseInt(process.env.CLIENT_PORT || process.env.APP_PORT, 10) || 3000;
+  parseInt(process.env.CLIENT_PORT || process.env.APP_PORT, 10) || 4880;
 
 const subs = JSON.parse(process.env.CLIENT_SUBS) || [];
 
