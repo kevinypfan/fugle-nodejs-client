@@ -29,8 +29,6 @@ export class WsClientV03Service {
       const data = JSON.parse(event.data);
       const mergedData = { ...data.data.info, ...data.data.quote };
       const hostname = os.hostname();
-      console.log(data);
-      console.log(mergedData);
       if (this.enableDbStorage) {
         const entity = new this.messageModel({
           hostname,
