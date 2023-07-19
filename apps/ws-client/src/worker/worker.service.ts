@@ -80,7 +80,7 @@ export class WorkerService {
       if (this.enableDbStorage) {
         const entity = new this.messageModel({
           hostname,
-          message: { symbol: data.symbol, date: data.date, ...data },
+          message: { symbol: data.data.symbol, date: data.data.date, ...data },
           workerId: this.workerId,
           version: '1.0',
         });
