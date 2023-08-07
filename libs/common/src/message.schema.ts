@@ -77,4 +77,8 @@ export const MessageSchema = SchemaFactory.createForClass(Message)
   .index({
     version: 1,
     'message.symbol': 1,
+  })
+  .index({
+    'message.event': 1,
+    'message.channel': 1,
   });

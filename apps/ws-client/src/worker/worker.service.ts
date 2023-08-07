@@ -2,9 +2,9 @@ import * as fs from 'fs';
 import * as os from 'os';
 import { Injectable, Logger } from '@nestjs/common';
 import { WebSocketClient } from '@fugle/marketdata';
-import { Message } from './message.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { Message } from '@app/common/message.schema';
 
 @Injectable()
 export class WorkerService {

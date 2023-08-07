@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { WorkerService } from './worker.service';
 import { MongooseModule } from '@nestjs/mongoose';
-import { MessageSchema, Message } from './message.schema';
+import { Message, MessageSchema } from '@app/common/message.schema';
 
 @Module({
   imports: [

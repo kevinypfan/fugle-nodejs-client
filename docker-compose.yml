@@ -1,0 +1,75 @@
+version: '3'
+
+services:
+  ws-client-v1.0:
+    build:
+      context: .
+      dockerfile: apps/ws-client/Dockerfile
+    image: ws-client-v1.0:${VERSION:-latest}
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - app-network
+    depends_on:
+      - mongo
+
+  ws-client-v0.3-2330:
+    build:
+      context: .
+      dockerfile: apps/ws-client-v0.3/Dockerfile
+    image: ws-client-v0.3:${VERSION:-latest}
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - FUGLE_API_SYMBOL=2330
+    networks:
+      - app-network
+    depends_on:
+      - mongo
+
+  ws-client-v0.3-2376:
+    build:
+      context: .
+      dockerfile: apps/ws-client-v0.3/Dockerfile
+    image: ws-client-v0.3:${VERSION:-latest}
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - FUGLE_API_SYMBOL=2376
+    networks:
+      - app-network
+    depends_on:
+      - mongo
+
+  ws-client-v0.3-2618:
+    build:
+      context: .
+      dockerfile: apps/ws-client-v0.3/Dockerfile
+    image: ws-client-v0.3:${VERSION:-latest}
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - FUGLE_API_SYMBOL=2618
+    networks:
+      - app-network
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo
+    restart: always
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: test1234
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

@@ -3,7 +3,7 @@ import * as WebSocket from 'ws';
 import * as fs from 'fs';
 import * as os from 'os';
 import { InjectModel } from '@nestjs/mongoose';
-import { Message } from './message.schema';
+import { Message } from '../../../libs/common/src/message.schema';
 import { Model } from 'mongoose';
 
 @Injectable()
